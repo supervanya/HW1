@@ -11,7 +11,8 @@
 ## [PROBLEM 1] - 150 points
 ## Below is code for one of the simplest possible Flask applications. Edit the code so that once you run this application locally and go to the URL 'http://localhost:5000/class', you see a page that says "Welcome to SI 364!"
 
-from flask import Flask
+from flask import Flask, request
+import requests
 app = Flask(__name__)
 app.debug = True
 
@@ -19,9 +20,24 @@ app.debug = True
 def hello_to_you():
     return 'Hello!'
 
+@app.route('/class')
+def welcome_to_SI364():
+    return 'Welcome to SI 364!'
 
-if __name__ == '__main__':
-    app.run()
+@app.route('/movie/<movie_name>')
+def movie(movie_name):
+    params = {
+        "term":     movie_name,
+        "entity":   "movie"
+    }
+    baseurl = "https://itunes.apple.com/search"
+    response = requests.get(baseurl, params = params)
+    
+    return str(response.text)
+
+
+
+
 
 
 ## [PROBLEM 2] - 250 points
@@ -39,11 +55,31 @@ if __name__ == '__main__':
 
 ## Run the app locally (repeatedly) and try these URLs out!
 
+
+
+
 ## [PROBLEM 3] - 250 points
 
 ## Edit the above Flask application code so that if you run the application locally and got to the URL http://localhost:5000/question, you see a form that asks you to enter your favorite number.
 ## Once you enter a number and submit it to the form, you should then see a web page that says "Double your favorite number is <number>". For example, if you enter 2 into the form, you should then see a page that says "Double your favorite number is 4". Careful about types in your Python code!
 ## You can assume a user will always enter a number only.
+@app.route('/question')
+def question():
+    html = """
+    <form method="POST" action="/square">
+        <label>Enter the number you want to square:<br></label>
+        <input type="num" required placeholder="your favorite number" name="number">
+        <button type="submit">Submit</button>
+    </form>
+    """
+    return html
+
+@app.route('/square', methods = ['GET', 'POST'])
+def square():
+    number = int(request.form.get("number", "got nothing"))
+    return "Double your favorite number is {}".format(str(number*number))
+
+
 
 
 ## [PROBLEM 4] - 350 points
@@ -65,3 +101,61 @@ if __name__ == '__main__':
 # You can assume that a user will give you the type of input/response you expect in your form; you do not need to handle errors or user confusion. (e.g. if your form asks for a name, you can assume a user will type a reasonable name; if your form asks for a number, you can assume a user will type a reasonable number; if your form asks the user to select a checkbox, you can assume they will do that.)
 
 # Points will be assigned for each specification in the problem.
+
+
+@app.route('/problem4form', methods = ['GET', 'POST'])
+def creator():
+    print(request.method)
+    # form to select the title
+    form = """
+    <h3>Find the creator of your favorite work of art:</h3>
+
+    <form method="POST" action="/problem4form">
+        <label><b>Enter a title:</b><br></label>
+        <input type="text" required placeholder="song, movie or book" name="title">
+        
+        <br>
+        <br>
+        <b>Where would you like to search?</b>
+        <br>
+        <input type="radio" name="entity" value="movie" checked />
+        <label for="movie">Movie</label>
+        <input type="radio" name="entity" value="music" />
+        <label for="song">Song</label>
+        <input type="radio" name="entity" value="ebook" />
+        <label for="book">Book</label>
+        <br>        <br>
+
+        <button type="submit"><b>Submit</b></button>
+    </form>
+    """
+
+    # if user already submitted the form, send request to the API
+    if request.method == "POST":
+        try:
+            # get the title from POST
+            title = request.form.get("title")
+
+            # get the checkboxes from POST
+            params = dict(term = title, media = request.form.get("entity"))
+
+
+            # make a request to the API with params
+            baseurl = "https://itunes.apple.com/search"
+            response = requests.get(baseurl, params = params).json()
+
+            # find the right data in the JSON
+            author = response["results"][0]["artistName"]
+            track_name = response["results"][0]["trackName"]
+
+            author_text = "\"{}\" is by:<br> <b>{}</b>".format(track_name, author) 
+            return form + author_text
+        except:
+            return form + "Can't find anything like this! 😱 "
+    else:
+        return form
+
+
+
+if __name__ == '__main__':
+    app.run()
