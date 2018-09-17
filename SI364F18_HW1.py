@@ -6,7 +6,8 @@
 
 ## List below here, in a comment/comments, the people you worked with on this assignment AND any resources you used to find code (50 point deduction for not doing so). If none, write "None".
 
-
+# Worked with Sindu Giri
+# Used iTunes API documentation: https://affiliate.itunes.apple.com/resources/documentation/itunes-store-web-service-search-api/
 
 ## [PROBLEM 1] - 150 points
 ## Below is code for one of the simplest possible Flask applications. Edit the code so that once you run this application locally and go to the URL 'http://localhost:5000/class', you see a page that says "Welcome to SI 364!"
